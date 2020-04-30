@@ -7,7 +7,8 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/arm-containerinstance": "5.4.0"
+    "@azure/arm-containerinstance": "5.4.0",
+    "@azure/ms-rest-nodeauth": "3.0.3"
   },
   "devDependencies": {}
 }
