@@ -1,9 +1,12 @@
-import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
+const { DefaultAzureCredential } = require("@azure/identity");
+const { KeyClient } = require("@azure/keyvault-keys");
 
 module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
 
-    let msiToken = await msRestNodeAuth.loginWithAppServiceMSI();
+    const credential = new DefaultAzureCredential();
+    const client = new SecretClient("https://agentsecrets.vault.azure.net/", credential);
+    const getResult = await client.getSecret("BuildkiteAgentToken");
 
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
