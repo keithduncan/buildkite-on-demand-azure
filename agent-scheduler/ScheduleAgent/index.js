@@ -1,18 +1,9 @@
 import * as msRestNodeAuth from "@azure/ms-rest-nodeauth";
 
 module.exports = async function (context, req) {
-    const options = {
-        msiEndpoint: "http://127.0.0.1:41741/MSI/token/";
-      }
-       
-      msRestNodeAuth.loginWithAppServiceMSI(options).then((msiTokenRes) => {
-        console.log(msiTokenRes);
-      }).catch((err) => {
-        console.log(err);
-      });
-      
-
     context.log('JavaScript HTTP trigger function processed a request.');
+
+    let msiToken = await msRestNodeAuth.loginWithAppServiceMSI();
 
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
