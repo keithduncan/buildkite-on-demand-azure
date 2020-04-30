@@ -1,5 +1,5 @@
 const { DefaultAzureCredential } = require("@azure/identity");
-const { KeyClient } = require("@azure/keyvault-keys");
+const { SecretClient } = require("@azure/keyvault-secrets");
 
 module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
