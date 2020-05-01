@@ -61,7 +61,7 @@ module.exports = async function (context, req) {
         location: 'australiaeast',
         name: `${jobId}`,
         containers: [{
-            name: 'agent',
+            name: `${jobId}`,
             environmentVariables: [{
                 name: 'BUILDKITE_AGENT_TOKEN', 
                 value: agentSecret.value,
@@ -85,7 +85,7 @@ module.exports = async function (context, req) {
         }],
         osType: 'Linux'
     });
-    console.log(`${JSON.stringify(container)}`);
+    console.log(`fn=main container=${JSON.stringify(container)}`);
 
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
