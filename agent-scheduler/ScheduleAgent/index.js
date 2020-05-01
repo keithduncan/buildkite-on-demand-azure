@@ -5,21 +5,21 @@ const { ContainerInstanceManagementClient } = require("@azure/arm-containerinsta
 
 module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
-    console.log(`${JSON.stringify(process.env)}`);
-    console.log(`${process.env['AZURE_SUBSCRIPTION_ID']}`);
+    console.log(`fn=main env=${JSON.stringify(process.env)}`);
+    console.log(`fn=main AZURE_SUBSCRIPTION_ID=${process.env['AZURE_SUBSCRIPTION_ID']}`);
     
     const vaultCreds = new Identity.DefaultAzureCredential();
     const keyvaultClient = new Keyvault.SecretClient('https://agentsecrets.vault.azure.net/', vaultCreds);
     const agentSecret = await keyvaultClient.getSecret('BuildkiteAgentToken');
-    console.log(agentSecret);
+    console.log(`fn=main agentSecret=${agentSecret}`);
 
     const armCreds = await RestNodeAuth.loginWithAppServiceMSI();
     console.log(`${JSON.stringify(armCreds)}`);
     // TODO this should come from env?
     const subscriptionId = "14a5eabe-fd4d-41d2-9326-2647e6bfde09";
     const containerClient = new ContainerInstanceManagementClient(armCreds, subscriptionId);
-    const resourceGroup = await containerClient.listByResourceGroup("buildkite-on-demand-test");
-    console.log(`${JSON.stringify(resourceGroup)}`);
+    const resourceGroup = await containerClient.containerGroups.listByResourceGroup("buildkite-on-demand-test");
+    console.log(`fn=main resourceGroup=${JSON.stringify(resourceGroup)}`);
 
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
