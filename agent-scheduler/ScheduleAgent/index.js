@@ -9,6 +9,7 @@ module.exports = async function (context, req) {
 
     // TODO put the subscription in the env using ARM
     console.log(`fn=main AZURE_SUBSCRIPTION_ID=${process.env['AZURE_SUBSCRIPTION_ID']}`);
+    const subscriptionId = "14a5eabe-fd4d-41d2-9326-2647e6bfde09";
     
     const vaultCreds = new Identity.DefaultAzureCredential();
     const keyvaultClient = new Keyvault.SecretClient('https://agentsecrets.vault.azure.net/', vaultCreds);
@@ -17,8 +18,6 @@ module.exports = async function (context, req) {
 
     const armCreds = await RestNodeAuth.loginWithAppServiceMSI();
     console.log(`fn=main armCreds=${JSON.stringify(armCreds)}`);
-    // TODO this should come from env?
-    const subscriptionId = "14a5eabe-fd4d-41d2-9326-2647e6bfde09";
     const containerClient = new ContainerInstanceManagementClient(armCreds, subscriptionId);
     const resourceGroup = await containerClient.containerGroups.listByResourceGroup("buildkite-on-demand-test");
     console.log(`fn=main resourceGroup=${JSON.stringify(resourceGroup)}`);
