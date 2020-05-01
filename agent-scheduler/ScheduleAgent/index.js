@@ -6,15 +6,17 @@ const { ContainerInstanceManagementClient } = require("@azure/arm-containerinsta
 module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
     console.log(`fn=main env=${JSON.stringify(process.env)}`);
+
+    // TODO put the subscription in the env using ARM
     console.log(`fn=main AZURE_SUBSCRIPTION_ID=${process.env['AZURE_SUBSCRIPTION_ID']}`);
     
     const vaultCreds = new Identity.DefaultAzureCredential();
     const keyvaultClient = new Keyvault.SecretClient('https://agentsecrets.vault.azure.net/', vaultCreds);
     const agentSecret = await keyvaultClient.getSecret('BuildkiteAgentToken');
-    console.log(`fn=main agentSecret=${agentSecret}`);
+    console.log(`fn=main agentSecret=${JSON.stringify(agentSecret)}`);
 
     const armCreds = await RestNodeAuth.loginWithAppServiceMSI();
-    console.log(`${JSON.stringify(armCreds)}`);
+    console.log(`fn=main armCreds=${JSON.stringify(armCreds)}`);
     // TODO this should come from env?
     const subscriptionId = "14a5eabe-fd4d-41d2-9326-2647e6bfde09";
     const containerClient = new ContainerInstanceManagementClient(armCreds, subscriptionId);
