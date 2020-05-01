@@ -56,6 +56,7 @@ module.exports = async function (context, req) {
 
     const jobId = job.uuid || job.id;
 
+    const image = getAgentQueryRule("image", job.agent_query_rules) || "keithduncan/buildkite-base";
     const cpu = parseInt(getAgentQueryRule("cpu", job.agent_query_rules) || "1");
     const memory = parseInt(getAgentQueryRule("memory", job.agent_query_rules) || "1");
 
@@ -72,9 +73,9 @@ module.exports = async function (context, req) {
                 name: "BUILDKITE_AGENT_ACQUIRE_JOB",
                 value: jobId,
             }],
-            image: 'buildkite/agent',
+            image: image,
             command: [
-                "buildkite-agent",
+                "/buildkite/bin/buildkite-agent",
                 "start",
                 "--disconnect-after-job",
                 "--disconnect-after-idle-timeout=10"
@@ -85,9 +86,23 @@ module.exports = async function (context, req) {
                     cpu: cpu,
                     memoryInGB: memory
                 }
-            }
+            },
+            volumeMounts: [{
+                name: "agent",
+                mountPath: "/buildkite",
+            }]
+        }, {
+            name: "agent-init",
+            image: "keithduncan/buildkite-sidecar",
+            command: [
+                "echo hello",
+            ],
         }],
         restartPolicy: "Never",
+        volumes: [{
+            name: "agent",
+            emptyDir: {}
+        }],
         osType: 'Linux'
     });
     console.log(`fn=main container=${JSON.stringify(container)}`);
