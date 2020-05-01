@@ -50,18 +50,18 @@ module.exports = async function (context, req) {
     const containerClient = new ContainerInstanceManagementClient(armCreds, subscriptionId);
 
     const resourceGroup = "buildkite-on-demand-test";
-    const containerGroup = "buildkite";
 
     const resourceGroupContents = await containerClient.containerGroups.listByResourceGroup(resourceGroup);
     console.log(`fn=main resourceGroupContents=${JSON.stringify(resourceGroupContents)}`);
 
     const jobId = job.uuid || job.id;
 
+    const containerGroup = jobId;
     const container = await containerClient.containerGroups.createOrUpdate(resourceGroup, containerGroup, { 
         location: 'australiaeast',
-        name: `${jobId}`,
+        name: "agent",
         containers: [{
-            name: `${jobId}`,
+            name: "agent",
             environmentVariables: [{
                 name: 'BUILDKITE_AGENT_TOKEN', 
                 value: agentSecret.value,
@@ -71,6 +71,7 @@ module.exports = async function (context, req) {
             }],
             image: 'buildkite/agent',
             command: [
+                "buildkite-agent",
                 "start",
                 "--disconnect-after-job",
                 "--disconnect-after-idle-timeout=10"
@@ -83,6 +84,7 @@ module.exports = async function (context, req) {
                 }
             }
         }],
+        restartPolicy: "Never",
         osType: 'Linux'
     });
     console.log(`fn=main container=${JSON.stringify(container)}`);
