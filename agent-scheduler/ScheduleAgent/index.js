@@ -85,6 +85,7 @@ module.exports = async function (context, req) {
         }],
         osType: 'Linux'
     });
+    console.log(`${JSON.stringify(container)}`);
 
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
