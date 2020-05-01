@@ -3,9 +3,38 @@ const RestNodeAuth = require("@azure/ms-rest-nodeauth");
 const Keyvault = require("@azure/keyvault-secrets");
 const { ContainerInstanceManagementClient } = require("@azure/arm-containerinstance");
 
+function getAgentQueryRule(rule, agentQueryRules) {
+    let taskDefinition = agentQueryRules.filter(query_rule => {
+            return query_rule.startsWith(`${rule}=`);
+        })
+        .map(query_rule => {
+            return query_rule.split("=")[1];
+        })
+        .shift();
+    
+    return taskDefinition;
+}
+
 module.exports = async function (context, req) {
     console.log(`fn=main body=${JSON.stringify(req.body)}`);
     console.log(`fn=main env=${JSON.stringify(process.env)}`);
+
+    let job = req.body.job;
+
+    let queue = getAgentQueryRule("queue", job.agent_query_rules);
+    let expectedQueue = process.env.BUILDKITE_QUEUE || "azure";
+    if (queue != expectedQueue) {
+        console.log(`fn=main at=job_ignored`);
+
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                message: `ignoring this job, the agent query rules specify queue='${queue}' which doesn't match '${expectedQueue}'`,
+            }),
+        };
+    }
+
+    console.log("fn=main at=job_accepted");
 
     // TODO put the subscription in the env using ARM
     console.log(`fn=main AZURE_SUBSCRIPTION_ID=${process.env['AZURE_SUBSCRIPTION_ID']}`);
@@ -25,6 +54,37 @@ module.exports = async function (context, req) {
 
     const resourceGroupContents = await containerClient.containerGroups.listByResourceGroup(resourceGroup);
     console.log(`fn=main resourceGroupContents=${JSON.stringify(resourceGroupContents)}`);
+
+    const jobId = job.uuid || job.id;
+
+    const container = await containerClient.containerGroups.createOrUpdate(resourceGroup, containerGroup, { 
+        location: 'australiaeast',
+        name: `${jobId}`,
+        containers: [{
+            name: 'agent',
+            environmentVariables: [{
+                name: 'BUILDKITE_AGENT_TOKEN', 
+                value: agentSecret.value,
+            }, {
+                name: "BUILDKITE_AGENT_ACQUIRE_JOB",
+                value: jobId,
+            }],
+            image: 'buildkite/agent',
+            command: [
+                "start",
+                "--disconnect-after-job",
+                "--disconnect-after-idle-timeout=10"
+            ],
+            resources: {
+                limits: null,
+                requests: {
+                    cpu: 1,
+                    memoryInGB: 1
+                }
+            }
+        }],
+        osType: 'Linux'
+    });
 
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
