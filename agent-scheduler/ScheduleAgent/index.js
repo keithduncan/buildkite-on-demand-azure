@@ -4,7 +4,7 @@ const Keyvault = require("@azure/keyvault-secrets");
 const { ContainerInstanceManagementClient } = require("@azure/arm-containerinstance");
 
 module.exports = async function (context, req) {
-    context.log('JavaScript HTTP trigger function processed a request.');
+    console.log(`fn=main body=${JSON.stringify(req.body)}`);
     console.log(`fn=main env=${JSON.stringify(process.env)}`);
 
     // TODO put the subscription in the env using ARM
@@ -19,10 +19,12 @@ module.exports = async function (context, req) {
     const armCreds = await RestNodeAuth.loginWithAppServiceMSI();
     console.log(`fn=main armCreds=${JSON.stringify(armCreds)}`);
     const containerClient = new ContainerInstanceManagementClient(armCreds, subscriptionId);
-    const resourceGroup = await containerClient.containerGroups.listByResourceGroup("buildkite-on-demand-test");
-    console.log(`fn=main resourceGroup=${JSON.stringify(resourceGroup)}`);
 
-    console.log(`fn=main body=${JSON.stringify(req.body)}`);
+    const resourceGroup = "buildkite-on-demand-test";
+    const containerGroup = "buildkite";
+
+    const resourceGroupContents = await containerClient.containerGroups.listByResourceGroup(resourceGroup);
+    console.log(`fn=main resourceGroupContents=${JSON.stringify(resourceGroupContents)}`);
 
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
