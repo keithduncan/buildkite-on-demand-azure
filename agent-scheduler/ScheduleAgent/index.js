@@ -1,30 +1,23 @@
-const { DefaultAzureCredential } = require("@azure/identity");
+const Identity = require('@azure/identity');
 const RestNodeAuth = require("@azure/ms-rest-nodeauth");
-
-const { SecretClient } = require("@azure/keyvault-secrets");
+const Keyvault = require("@azure/keyvault-secrets");
 const { ContainerInstanceManagementClient } = require("@azure/arm-containerinstance");
 
 module.exports = async function (context, req) {
     context.log('JavaScript HTTP trigger function processed a request.');
-
     console.log(`${JSON.stringify(process.env)}`);
+    console.log(`${process.env['AZURE_SUBSCRIPTION_ID']}`);
+    
+    const vaultCreds = new Identity.DefaultAzureCredential();
+    const keyvaultClient = new Keyvault.SecretClient('https://agentsecrets.vault.azure.net/', vaultCreds);
+    const agentSecret = await keyvaultClient.getSecret('BuildkiteAgentToken');
+    console.log(agentSecret);
 
-    const credential = new DefaultAzureCredential();
-    console.log(`${JSON.stringify(credential)}`);
-
-    const client = new SecretClient("https://agentsecrets.vault.azure.net/", credential);
-    const getResult = await client.getSecret("BuildkiteAgentToken");
-    console.log(`buildkite token: ${JSON.stringify(getResult)}`);
-    // getResult.value
-
-    // const options = {
-    //     msiEndpoint: "http://127.0.0.1:41741/MSI/token/",
-    // };
-    // const msiTokenRes = await RestNodeAuth.loginWithAppServiceMSI(options);
-    // console.log(`${msiTokenRes}`);
-
-    const containerClient = new ContainerInstanceManagementClient(credential);
-
+    const armCreds = await RestNodeAuth.loginWithAppServiceMSI();
+    console.log(`${JSON.stringify(armCreds)}`);
+    // TODO this should come from env?
+    const subscriptionId = "14a5eabe-fd4d-41d2-9326-2647e6bfde09";
+    const containerClient = new ContainerInstanceManagementClient(armCreds, subscriptionId);
     const resourceGroup = await containerClient.listByResourceGroup("buildkite-on-demand-test");
     console.log(`${JSON.stringify(resourceGroup)}`);
 

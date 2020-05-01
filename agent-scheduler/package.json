@@ -7,10 +7,10 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/arm-containerinstance": "5.4.0",
+    "@azure/ms-rest-nodeauth": "3.0.3",
     "@azure/identity": "1.1.0-preview1",
-    "@azure/keyvault-secrets": "4.0.0",
-    "@azure/ms-rest-nodeauth": "3.0.3"
+    "@azure/keyvault-secrets": "4.0.2",
+    "@azure/arm-containerinstance": "5.4.0"
   },
   "devDependencies": {}
 }
