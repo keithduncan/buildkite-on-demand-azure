@@ -56,6 +56,9 @@ module.exports = async function (context, req) {
 
     const jobId = job.uuid || job.id;
 
+    const cpu = parseInt(getAgentQueryRule("cpu", job.agent_query_rules) || "1");
+    const memory = parseInt(getAgentQueryRule("memory", job.agent_query_rules) || "1");
+
     const containerGroup = jobId;
     const container = await containerClient.containerGroups.createOrUpdate(resourceGroup, containerGroup, { 
         location: 'australiaeast',
@@ -79,8 +82,8 @@ module.exports = async function (context, req) {
             resources: {
                 limits: null,
                 requests: {
-                    cpu: 1,
-                    memoryInGB: 1
+                    cpu: cpu,
+                    memoryInGB: memory
                 }
             }
         }],
