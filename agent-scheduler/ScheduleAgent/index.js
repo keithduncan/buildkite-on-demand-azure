@@ -23,6 +23,8 @@ module.exports = async function (context, req) {
     const resourceGroup = await containerClient.containerGroups.listByResourceGroup("buildkite-on-demand-test");
     console.log(`fn=main resourceGroup=${JSON.stringify(resourceGroup)}`);
 
+    console.log(`fn=main body=${JSON.stringify(req.body)}`);
+
     const name = (req.query.name || (req.body && req.body.name));
     const responseMessage = name
         ? "Hello, " + name + ". This HTTP triggered function executed successfully."
